@@ -1,4 +1,7 @@
 # regexredux_ocaml
 
-## Execution :
-$ make run
+## Execution with re:
+$ make re
+
+## Execution with Str:
+$ make str
