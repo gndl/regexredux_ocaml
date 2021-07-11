@@ -53,8 +53,21 @@ let count re s =
 
 
 let () =
-  List.iter (fun re -> printf "%s %i\n" (to_string re) (count re dna)) variants;
-  let b = ref dna in
-  List.iter (fun (re, s) ->
-               b := Str.global_replace (Str.regexp re) s !b) subst;
-  printf "\n%i\n%i\n%i\n" file_length code_length (String.length !b)
+  if Sys.argv.(1) = "p" then (
+    if Unix.fork() = 0 then (
+      List.iter (fun re -> printf "%s %i\n" (to_string re) (count re dna)) variants;
+    )
+    else (
+      let b = ref dna in
+      List.iter (fun (re, s) ->
+          b := Str.global_replace (Str.regexp re) s !b) subst;
+
+      ignore(Unix.wait());
+      printf "\n%i\n%i\n%i\n" file_length code_length (String.length !b)
+    )
+  ) else (
+    List.iter (fun re -> printf "%s %i\n" (to_string re) (count re dna)) variants;
+    let b = ref dna in
+    List.iter (fun (re, s) -> b := Str.global_replace (Str.regexp re) s !b) subst;
+    printf "\n%i\n%i\n%i\n" file_length code_length (String.length !b)
+  )

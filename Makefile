@@ -1,39 +1,32 @@
-default: re
+all: str pcre re_str re_pcre_core
 
-dep:
+re_dep:
 	opam install -y re
 
-fasta.ocaml-6.ocaml_run:
-	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 unix.cmxa -ccopt -march=ivybridge fasta.ocaml-6.ml -o $@
+pcre_dep:
+	opam install -y pcre
 
-fasta_data.txt: fasta.ocaml-6.ocaml_run
-	./fasta.ocaml-6.ocaml_run 5000000 > $@
+fasta.ocaml-6:
+	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 unix.cmxa -ccopt -march=ivybridge $@.ml -o $@
 
+fasta_data.txt: fasta.ocaml-6
+	./fasta.ocaml-6 5000000 > $@
 
-regexredux.ocaml-2.ocaml_run:
-	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 unix.cmxa str.cmxa -ccopt -march=ivybridge regexredux.ocaml-2.ml -o $@
-
-str: regexredux.ocaml-2.ocaml_run fasta_data.txt
-	time ./regexredux.ocaml-2.ocaml_run 0 < fasta_data.txt
+fasta: fasta.ocaml-6
 
 
-regexredux.ocaml-3.ocaml_run: dep
-	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 -I $(OPAM_SWITCH_PREFIX)/lib/re unix.cmxa re.cmxa -ccopt -march=ivybridge regexredux.ocaml-3.ml -o $@
+str: fasta_data.txt
+	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 unix.cmxa str.cmxa -ccopt -march=ivybridge regexredux_$@.ml -o $@
 
-#	ocamlopt -g -I $(OPAM_SWITCH_PREFIX)/lib/re unix.cmxa re.cmxa regexredux.ocaml-3.ml -o $@
+pcre: pcre_dep fasta_data.txt
+	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 -I $(OPAM_SWITCH_PREFIX)/lib/pcre unix.cmxa pcre.cmxa -ccopt -march=ivybridge regexredux_$@.ml -o $@
 
-re: regexredux.ocaml-3.ocaml_run fasta_data.txt
-	time ./regexredux.ocaml-3.ocaml_run 0 < fasta_data.txt
+re_str: re_dep fasta_data.txt
+	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 -I $(OPAM_SWITCH_PREFIX)/lib/re unix.cmxa re.cmxa -ccopt -march=ivybridge regexredux_$@.ml -o $@
 
-fasta: fasta.ocaml-6.ocaml_run
+re_pcre_core: re_dep fasta_data.txt
+	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 -I $(OPAM_SWITCH_PREFIX)/lib/re unix.cmxa re.cmxa -ccopt -march=ivybridge regexredux_$@.ml -o $@
 
-build: regexredux.ocaml-3.ocaml_run
-
-dbg: regexredux.ocaml-3.ocaml_run fasta_data.txt
-	ocamldebug ./regexredux.ocaml-3.ocaml_run 0 < fasta_data.txt
-
-gdb: regexredux.ocaml-3.ocaml_run fasta_data.txt
-	gdb -q -ex 'set args < fasta_data.txt' ./regexredux.ocaml-3.ocaml_run
 
 clean:
 	git clean -dfXq

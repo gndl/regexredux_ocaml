@@ -1,7 +1,16 @@
 # regexredux_ocaml
 
-## Execution with re:
-$ make re
+## Compilation :
+$ make all
 
-## Execution with Str:
-$ make str
+## Execution :
+$ ./run.sh
+
+## Results (in seconds) :
+
+| Impl | sequential | parallel |
+|------|------------|----------|
+| Str | 12 | 7 |
+| Pcre | 14 | 9 |
+| Re.Str | 7 | 6 |
+| Re | 3,4 | 2 |
