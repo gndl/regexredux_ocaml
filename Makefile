@@ -1,4 +1,4 @@
-all: str pcre re_str re_pcre_core
+all: str pcre re_str re_pcre_core regexredux.ocaml
 
 re_dep:
 	opam install -y re
@@ -26,6 +26,9 @@ re_str: re_dep fasta_data.txt
 
 re_pcre_core: re_dep fasta_data.txt
 	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 -I $(OPAM_SWITCH_PREFIX)/lib/re unix.cmxa re.cmxa -ccopt -march=ivybridge regexredux_$@.ml -o $@
+
+regexredux.ocaml: re_dep fasta_data.txt
+	ocamlopt -noassert -unsafe -fPIC -nodynlink -inline 100 -O3 -I $(OPAM_SWITCH_PREFIX)/lib/re unix.cmxa re.cmxa -ccopt -march=ivybridge $@-3.ml -o $@
 
 
 clean:
