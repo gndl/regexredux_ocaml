@@ -48,10 +48,29 @@ let count re s =
     assert false
   with Not_found -> !n
 
-let () =
-  if Sys.argv.(1) = "p" then (
+(* Parallel count matches of [re]. *)
+let rec p_count = function
+  | [re] -> printf "%s %i\n" re (count re dna)
+  | re::tl ->
     if Unix.fork() = 0 then (
-      List.iter (fun re -> printf "%s %i\n" re (count re dna)) variants;
+      p_count tl
+    ) else (
+      let nb = count re dna in
+      ignore(Unix.wait());
+      printf "%s %i\n" re nb
+    )
+  | [] -> ()
+
+
+let () =
+  if Sys.argv.(1) = "p" || Sys.argv.(1) = "pc" then (
+    if Unix.fork() = 0 then (
+      if Sys.argv.(1) = "pc" then (
+        p_count(List.rev variants);
+      )
+      else (
+        List.iter (fun re -> printf "%s %i\n" re (count re dna)) variants;
+      )
     )
     else (
       let b = ref dna in

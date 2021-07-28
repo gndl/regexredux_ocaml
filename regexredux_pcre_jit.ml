@@ -31,11 +31,12 @@ let file_data, file_length =
   (Buffer.contents b, Buffer.length b)
 
 (* Remove FASTA sequence descriptions and all linefeed characters.  *)
-let dna = Pcre.qreplace ~pat:">.*\n|\n" ~templ:"" file_data
+let dna = Pcre.qreplace ~rex:(Pcre.regexp ~jit_compile:true ">.*\n|\n") ~templ:"" file_data
 let code_length = String.length dna
 
 (* Count matches of [pat]. *)
-let count pat s = Array.length(Pcre.exec_all ~pat s)
+let count pat s =
+  Array.length(Pcre.exec_all ~rex:(Pcre.regexp ~jit_compile:true pat) s)
 
 (* Parallel count matches of [re]. *)
 let rec p_count = function
@@ -63,7 +64,7 @@ let () =
     )
     else (
       let b = ref dna in
-      List.iter (fun (pat, templ) -> b := Pcre.qreplace ~pat ~templ !b) subst;
+      List.iter (fun (pat, templ) -> b := Pcre.qreplace ~rex:(Pcre.regexp ~jit_compile:true pat) ~templ !b) subst;
 
       ignore(Unix.wait());
       printf "\n%i\n%i\n%i\n" file_length code_length (String.length !b)
@@ -71,6 +72,6 @@ let () =
   ) else (
     List.iter (fun re -> printf "%s %i\n" re (count re dna)) variants;
     let b = ref dna in
-    List.iter (fun (pat, templ) -> b := Pcre.qreplace ~pat ~templ !b) subst;
+    List.iter (fun (pat, templ) -> b := Pcre.qreplace ~rex:(Pcre.regexp ~jit_compile:true pat) ~templ !b) subst;
     printf "\n%i\n%i\n%i\n" file_length code_length (String.length !b)
   )
